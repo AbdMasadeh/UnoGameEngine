@@ -1,13 +1,72 @@
-import java.util.*;
+import entity.Card;
+import entity.Player;
+import entity.CardColor;
+import entity.CardEffect;
+import entity.CardType;
+import entityDTO.CardDTO;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Scanner;
+
+import static mapper.CardMapper.mapToCardDTO;
 
 class UnoGame extends Game {
-    List<Player> playersCards = new ArrayList<>();
     Card cardInTheMiddle;
+    CardDTO cardInTheMiddleDTO;
+    int currentPlayerTurn = 0;
+    boolean isClockWise = true;
+
+    Scanner scanner = new Scanner(System.in);
 
     public UnoGame(List<Player> players) {
         super(players);
     }
 
+    @Override
+    public void skipEffect() {
+        nextTurn();
+    }
+
+    @Override
+    public void reverseEffect() {
+        isClockWise = !isClockWise;
+    }
+
+    @Override
+    public void drawTwoEffect() {
+        nextTurn();
+        for(int i=0; i < 2; i++) {
+            players.get(currentPlayerTurn).addOneCard(drawCardFromPile());
+        }
+    }
+
+    @Override
+    public void drawFourEffect() {
+        nextTurn();
+        for(int i=0; i < 4; i++) {
+            players.get(currentPlayerTurn).addOneCard(drawCardFromPile());
+        }
+    }
+
+    @Override
+    public void changeColorEffect() {
+
+    }
+
+    @Override
+    public void effects(Card card) {
+        if (card.getType() != CardType.NUMBER ) {
+            switch (card.getEffect()) {
+                case DRAW_2 -> drawTwoEffect();
+                case REVERSE -> reverseEffect();
+                case SKIP -> skipEffect();
+                case DRAW_4 -> drawFourEffect();
+                case CHANGE_COLOR -> changeColorEffect();
+            }
+        }
+    }
     @Override
     public void fillCardsPile() {
         for (int color = 0; color < 4; color++) {
@@ -33,9 +92,6 @@ class UnoGame extends Game {
                 cardsPile.push(new Card(50, CardColor.BLACK, CardType.WILD, CardEffect.values()[5]));
             }
         }
-
-        //printCardsPile
-
     }
 
     @Override
@@ -50,7 +106,6 @@ class UnoGame extends Game {
                 player.addOneCard(cardsPile.pop());
             }
         }
-        //printEachPlayerCards();
     }
 
     @Override
@@ -59,20 +114,112 @@ class UnoGame extends Game {
     }
 
     @Override
+    public void printListOfCards(List<Card> cards, String title) {
+        System.out.print(title + " [ ");
+        for (Card card : cards) {
+            CardDTO cardDTO = mapToCardDTO(card);
+            System.out.print("[");
+            cardDTO.printCardDTO();
+            System.out.print("], ");
+        }
+        System.out.println(" ]");
+    }
+
+    @Override
+    public boolean matchingCards(Card card) {
+        return card.getType() == CardType.WILD || card.getColor() == cardInTheMiddle.getColor() ||
+                (card.getValue() == cardInTheMiddle.getValue() && card.getType() == CardType.NUMBER) ||
+                (card.getEffect() == cardInTheMiddle.getEffect() && card.getType() == CardType.ACTION);
+    }
+
+    @Override
+    public void playerTurn() {
+        printCardInTheMiddleDTO();
+
+        Player player = players.get(currentPlayerTurn);
+        System.out.println("\nPlayer turn: Player " + player.getName());
+        System.out.println("Number of players cards= "+ player.getCards().size());
+
+        printListOfCards(player.getCards(), "All player Cards:");
+
+        List<Card> allowedCards = new ArrayList<>();
+
+        for (Card card : player.getCards()) {
+            if (matchingCards(card)) {
+                allowedCards.add(card);
+            }
+        }
+        if (allowedCards.size() > 0) {
+            printListOfCards(allowedCards, "allowed cards:");
+            System.out.print("Choose a card by entering its index: ");
+            int cardIndex = scanner.nextInt();
+            while (cardIndex < 0 || cardIndex > allowedCards.size() - 1) {
+                System.out.println("Invalid Input\n Re-Enter your card index");
+                cardIndex = scanner.nextInt();
+            }
+            effects(allowedCards.get(cardIndex));
+            cardInTheMiddle = allowedCards.get(cardIndex);
+            player.removeOneCard(allowedCards.get(cardIndex));
+
+            scanner.nextLine();
+            System.out.println();
+        } else {
+            System.out.println("No Card can be played. drawing a card...");
+        }
+
+    }
+
+    @Override
+    public void turnClockWise() {
+        currentPlayerTurn++;
+        if (currentPlayerTurn >= players.size()) {
+            currentPlayerTurn = 0;
+        }
+    }
+
+    @Override
+    public void turnCounterClockWise() {
+        currentPlayerTurn--;
+        if (currentPlayerTurn < 0) {
+            currentPlayerTurn = players.size() - 1;
+        }
+    }
+
+    @Override
+    public void nextTurn() {
+        if (isClockWise) {
+            turnClockWise();
+        } else {
+            turnCounterClockWise();
+        }
+    }
+
+    @Override
+    public Card drawCardFromPile() {
+        return cardsPile.pop();
+    }
+
+
+    @Override
     public void play() {
         System.out.println("\nStarting Uno game...");
 
         fillCardsPile();
         shuffleCards();
-        printCardsPile();
+//        printCardsPileDTO();
 
         givePlayersCards();
-        printEachPlayersCards();
+        printEachPlayersCardsDTO();
 
         drawTheFirstCard();
-        printCardInTheMiddle();
 
-        System.out.println("number of cards: " + cardsPile.size());
+//        System.out.println("number of cards: " + cardsPile.size());
+
+        for (int i = 0; i < 20; i++) {
+            playerTurn();
+            nextTurn();
+        }
+        scanner.close();
     }
 
 
@@ -84,19 +231,53 @@ class UnoGame extends Game {
         }
     }
 
+    private void printCardsPileDTO() {
+        System.out.println("size=" + cardsPile.size());
+        for (Card card : cardsPile) {
+            CardDTO cardDTO = mapToCardDTO(card);
+            System.out.print("[");
+            cardDTO.printCardDTO();
+            System.out.println("], ");
+        }
+    }
+
     private void printEachPlayersCards() {
         for (Player player : players) {
             System.out.println();
             System.out.println(player.getName() + " Cards :");
             List<Card> cards = player.getCards();
-            for(Card card : cards) {
+            for (Card card : cards) {
                 card.printCard();
             }
         }
     }
 
+    private void printEachPlayersCardsDTO() {
+        for (Player player : players) {
+            System.out.println();
+            System.out.println("Player " + player.getName() + " Cards :");
+            List<Card> cards = player.getCards();
+            for (Card card : cards) {
+                CardDTO cardDTO = mapToCardDTO(card);
+                System.out.print("[");
+                cardDTO.printCardDTO();
+                System.out.print("], ");
+            }
+            System.out.println();
+        }
+        System.out.println("\n");
+    }
+
     private void printCardInTheMiddle() {
-        System.out.println();
+        System.out.print("Card in the middle: ");
         cardInTheMiddle.printCard();
+        System.out.println();
+    }
+
+    private void printCardInTheMiddleDTO() {
+        System.out.print("Card in the middle: [");
+        cardInTheMiddleDTO = mapToCardDTO(cardInTheMiddle);
+        cardInTheMiddleDTO.printCardDTO();
+        System.out.println("]");
     }
 }

@@ -1,8 +1,10 @@
+package entity;
+
 public class Card {
-    private int value;
-    private CardColor color;
-    private CardType type;
-    private CardEffect effect;
+    private final int value;
+    private final CardColor color;
+    private final CardType type;
+    private final CardEffect effect;
 
     public Card(int value, CardColor color, CardType type, CardEffect effect) {
         this.value = value;
@@ -25,22 +27,6 @@ public class Card {
 
     public CardEffect getEffect() {
         return effect;
-    }
-
-    public void setValue(int value) {
-        this.value = value;
-    }
-
-    public void setColor(CardColor color) {
-        this.color = color;
-    }
-
-    public void setType(CardType type) {
-        this.type = type;
-    }
-
-    public void setEffect(CardEffect effect) {
-        this.effect = effect;
     }
 
     public void printCard() {

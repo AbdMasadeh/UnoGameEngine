@@ -1,3 +1,5 @@
+package entity;
+
 public enum CardEffect {
     NONE,
     DRAW_2,

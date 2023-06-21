@@ -1,3 +1,5 @@
+package entity;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,11 +19,11 @@ public class Player {
         return cards;
     }
 
-    public void setCards(List<Card> cards) {
-        this.cards = cards;
-    }
-
     public void addOneCard(Card card) {
         this.cards.add(card);
+    }
+
+    public void removeOneCard(Card card) {
+        this.cards.remove(card);
     }
 }
