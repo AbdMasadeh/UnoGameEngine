@@ -42,4 +42,8 @@ public class Card {
     public void setEffect(CardEffect effect) {
         this.effect = effect;
     }
+
+    public void printCard() {
+        System.out.println(this.value + " " + this.color + " " + this.type + " " + this.effect);
+    }
 }

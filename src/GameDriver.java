@@ -7,33 +7,25 @@ import java.util.*;
 
 public class GameDriver {
     public static void main(String[] args) {
-        Test test = new Test();
 
-        test.fillCardsPile();
+        Scanner scanner = new Scanner(System.in);
 
-//        Collections.shuffle(test.cardsPile);
-        System.out.println("size=" + test.cardsPile.size());
-        for(int i=0; i < test.cardsPile.size(); i++) {
-            System.out.println(test.cardsPile.get(i).getValue()+ " "+test.cardsPile.get(i).getColor()+ " "+test.cardsPile.get(i).getType()+ " "+test.cardsPile.get(i).getEffect());
+        System.out.print("Enter the number of players: ");
+        int numPlayers = scanner.nextInt();
+        if(numPlayers < 2) throw new RuntimeException("Uno is played with at least 2 players");
+        if(numPlayers > 10) throw new RuntimeException("Uno is played with at most 10 players");
+        scanner.nextLine();
+
+        List<Player> players = new ArrayList<>();
+        for (int i = 0; i < numPlayers; i++) {
+            System.out.printf("Enter the name of player %d: ", i + 1);
+            String playerName = scanner.nextLine();
+            players.add(new Player(playerName));
         }
-//        Scanner scanner = new Scanner(System.in);
-//
-//        System.out.print("Enter the number of players: ");
-//        int numPlayers = scanner.nextInt();
-//        scanner.nextLine();
-//
-//        List<String> players = new ArrayList<>();
-//        for (int i = 0; i < numPlayers; i++) {
-//            System.out.printf("Enter the name of player %d: ", i + 1);
-//            String playerName = scanner.nextLine();
-//            players.add(playerName);
-//        }
-//
-//        List<String> gameRules = Arrays.asList("Rule 1", "Rule 2", "Rule 3"); // Predefined game rules
-//
-//        Game unoGame = new UnoGame(players, gameRules);
-//        unoGame.play();
-//
-//        scanner.close();
+
+        Game unoGame = new UnoGame(players);
+        unoGame.play();
+
+        scanner.close();
     }
 }

@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 /**
  *  In order to create a new game variation, ideally, a developer will only need to create
@@ -15,27 +16,25 @@ import java.util.List;
  */
 abstract public class Game {
 
-    private final List<String> players;
-    protected List<String> cards;
+    protected List<Player> players;
+    protected Stack<Card> cardsPile;
 
-    public Game(List<String> players) {
+    public Game(List<Player> players) {
         this.players = players;
-        this.cards = new ArrayList<>();
-        initializeCards();
+        this.cardsPile = new Stack<>();
     }
-
-    protected abstract void initializeCards();
 
     public abstract void play();
-
-    protected void dealCards(int numCards) {
-        for (String player : players) {
-            System.out.printf("Dealing %d cards to %s\n", numCards, player);
-            for (int i = 0; i < numCards; i++) {
-                int randomIndex = (int) (Math.random() * cards.size());
-                String card = cards.remove(randomIndex);
-                System.out.printf("   %s: %s\n", player, card);
-            }
-        }
+    public abstract void fillCardsPile();
+    public abstract void shuffleCards();
+    public abstract void drawTheFirstCard();
+    public void drawOneCard() {
     }
+    public abstract void givePlayersCards();
+    /**
+     *
+     * 1. More than one turn
+     * 2.
+     *
+     */
 }
