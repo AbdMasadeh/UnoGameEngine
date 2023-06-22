@@ -13,12 +13,11 @@ import java.util.Scanner;
 import static mapper.CardMapper.mapToCardDTO;
 
 class UnoGame extends Game {
+    Scanner scanner = new Scanner(System.in);
     Card cardInTheMiddle;
     CardDTO cardInTheMiddleDTO;
     int currentPlayerTurn = 0;
     boolean isClockWise = true;
-
-    Scanner scanner = new Scanner(System.in);
 
     public UnoGame(List<Player> players) {
         super(players);
@@ -37,27 +36,34 @@ class UnoGame extends Game {
     @Override
     public void drawTwoEffect() {
         nextTurn();
-        for(int i=0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) {
             players.get(currentPlayerTurn).addOneCard(drawCardFromPile());
         }
     }
 
     @Override
     public void drawFourEffect() {
+        changeColorEffect();
         nextTurn();
-        for(int i=0; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             players.get(currentPlayerTurn).addOneCard(drawCardFromPile());
         }
     }
 
     @Override
     public void changeColorEffect() {
-
+        System.out.print("Choose a color of the four: [");
+        for(int i=0; i < CardColor.values().length - 1; i++) {
+            System.out.print(CardColor.values()[i].toString() + ", ");
+        }
+        System.out.print("]\nEnter index starting from 0 :");
+        int colorIndex = scanner.nextInt();
+        cardInTheMiddle.setColor(CardColor.values()[colorIndex]);
     }
 
     @Override
     public void effects(Card card) {
-        if (card.getType() != CardType.NUMBER ) {
+        if (card.getType() != CardType.NUMBER) {
             switch (card.getEffect()) {
                 case DRAW_2 -> drawTwoEffect();
                 case REVERSE -> reverseEffect();
@@ -67,6 +73,7 @@ class UnoGame extends Game {
             }
         }
     }
+
     @Override
     public void fillCardsPile() {
         for (int color = 0; color < 4; color++) {
@@ -114,15 +121,8 @@ class UnoGame extends Game {
     }
 
     @Override
-    public void printListOfCards(List<Card> cards, String title) {
-        System.out.print(title + " [ ");
-        for (Card card : cards) {
-            CardDTO cardDTO = mapToCardDTO(card);
-            System.out.print("[");
-            cardDTO.printCardDTO();
-            System.out.print("], ");
-        }
-        System.out.println(" ]");
+    public void setCardInTheMiddle(Card card) {
+        cardInTheMiddle = card;
     }
 
     @Override
@@ -138,9 +138,10 @@ class UnoGame extends Game {
 
         Player player = players.get(currentPlayerTurn);
         System.out.println("\nPlayer turn: Player " + player.getName());
-        System.out.println("Number of players cards= "+ player.getCards().size());
+        System.out.println("Number of players cards= " + player.getCards().size());
 
         printListOfCards(player.getCards(), "All player Cards:");
+        System.out.println();
 
         List<Card> allowedCards = new ArrayList<>();
 
@@ -150,23 +151,46 @@ class UnoGame extends Game {
             }
         }
         if (allowedCards.size() > 0) {
-            printListOfCards(allowedCards, "allowed cards:");
-            System.out.print("Choose a card by entering its index: ");
+            printListOfCards(allowedCards, "Cards allowed to play:");
+            System.out.print("\nChoose a card by entering its index starting from 0 : ");
             int cardIndex = scanner.nextInt();
             while (cardIndex < 0 || cardIndex > allowedCards.size() - 1) {
                 System.out.println("Invalid Input\n Re-Enter your card index");
                 cardIndex = scanner.nextInt();
             }
-            effects(allowedCards.get(cardIndex));
-            cardInTheMiddle = allowedCards.get(cardIndex);
+            playCard(allowedCards.get(cardIndex));
             player.removeOneCard(allowedCards.get(cardIndex));
 
             scanner.nextLine();
             System.out.println();
         } else {
             System.out.println("No Card can be played. drawing a card...");
-        }
 
+            Card extraCard = drawCardFromPile();
+            player.addOneCard(extraCard);
+
+            System.out.print("Card drawn: ");
+            cardPrintAndMapToDTO(extraCard);
+            System.out.println();
+
+            if (matchingCards(extraCard)) {
+                System.out.println("Card can be played, Do you want to play it?");
+                System.out.print("Enter 0 -> false, 1 -> true : ");
+                boolean isPlay = scanner.nextInt() == 1;
+                if (isPlay) {
+                    playCard(extraCard);
+                    player.removeOneCard(extraCard);
+                }
+            } else {
+                System.out.println("Card not allowed to be played, skipping turn...");
+            }
+        }
+    }
+
+    @Override
+    public void playCard(Card card) {
+        setCardInTheMiddle(card);
+        effects(card);
     }
 
     @Override
@@ -198,7 +222,6 @@ class UnoGame extends Game {
     public Card drawCardFromPile() {
         return cardsPile.pop();
     }
-
 
     @Override
     public void play() {
@@ -234,10 +257,7 @@ class UnoGame extends Game {
     private void printCardsPileDTO() {
         System.out.println("size=" + cardsPile.size());
         for (Card card : cardsPile) {
-            CardDTO cardDTO = mapToCardDTO(card);
-            System.out.print("[");
-            cardDTO.printCardDTO();
-            System.out.println("], ");
+            cardPrintAndMapToDTO(card);
         }
     }
 
@@ -258,10 +278,7 @@ class UnoGame extends Game {
             System.out.println("Player " + player.getName() + " Cards :");
             List<Card> cards = player.getCards();
             for (Card card : cards) {
-                CardDTO cardDTO = mapToCardDTO(card);
-                System.out.print("[");
-                cardDTO.printCardDTO();
-                System.out.print("], ");
+                cardPrintAndMapToDTO(card);
             }
             System.out.println();
         }
@@ -277,7 +294,25 @@ class UnoGame extends Game {
     private void printCardInTheMiddleDTO() {
         System.out.print("Card in the middle: [");
         cardInTheMiddleDTO = mapToCardDTO(cardInTheMiddle);
+        if (cardInTheMiddle.getType() == CardType.WILD) {
+            cardInTheMiddleDTO.setSecondValue(cardInTheMiddle.getColor().toString());
+        }
         cardInTheMiddleDTO.printCardDTO();
         System.out.println("]");
+    }
+
+    public void printListOfCards(List<Card> cards, String title) {
+        System.out.print(title + " [ ");
+        for (Card card : cards) {
+            cardPrintAndMapToDTO(card);
+            System.out.print(", ");
+        }
+        System.out.print("\b\b ]");
+    }
+    public void cardPrintAndMapToDTO(Card card) {
+        CardDTO cardDTO = mapToCardDTO(card);
+        System.out.print("[");
+        cardDTO.printCardDTO();
+        System.out.print("]");
     }
 }

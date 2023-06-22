@@ -2,7 +2,7 @@ package entity;
 
 public class Card {
     private final int value;
-    private final CardColor color;
+    private CardColor color;
     private final CardType type;
     private final CardEffect effect;
 
@@ -27,6 +27,10 @@ public class Card {
 
     public CardEffect getEffect() {
         return effect;
+    }
+
+    public void setColor(CardColor color) {
+        this.color = color;
     }
 
     public void printCard() {

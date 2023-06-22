@@ -31,18 +31,21 @@ abstract public class Game {
 
     public abstract void givePlayersCards();
 
+    public abstract void setCardInTheMiddle(Card card);
+
     public abstract void drawTheFirstCard();
 
     public abstract void playerTurn();
-
-    public abstract void printListOfCards(List<Card> cards, String title);
+    public abstract void playCard(Card card);
 
     public abstract boolean matchingCards(Card card);
+
     public abstract void nextTurn();
 
     public abstract void turnClockWise();
 
     public abstract void turnCounterClockWise();
+
     public abstract void effects(Card card);
 
     public abstract Card drawCardFromPile();
