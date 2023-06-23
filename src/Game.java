@@ -36,7 +36,13 @@ abstract public class Game {
     public abstract void drawTheFirstCard();
 
     public abstract void playerTurn();
+
     public abstract void playCard(Card card);
+    public abstract void printPlayersScores();
+
+    public abstract void startNewGame();
+
+    public abstract void removePlayersCards();
 
     public abstract boolean matchingCards(Card card);
 
@@ -45,6 +51,9 @@ abstract public class Game {
     public abstract void turnClockWise();
 
     public abstract void turnCounterClockWise();
+
+    public abstract void scoreCounter(Player player);
+    public abstract void EndGame();
 
     public abstract void effects(Card card);
 

@@ -16,8 +16,9 @@ class UnoGame extends Game {
     Scanner scanner = new Scanner(System.in);
     Card cardInTheMiddle;
     CardDTO cardInTheMiddleDTO;
-    int currentPlayerTurn = 0;
-    boolean isClockWise = true;
+    int currentPlayerTurn;
+    boolean isClockWise;
+    boolean isEnd = false;
 
     public UnoGame(List<Player> players) {
         super(players);
@@ -53,7 +54,7 @@ class UnoGame extends Game {
     @Override
     public void changeColorEffect() {
         System.out.print("Choose a color of the four: [");
-        for(int i=0; i < CardColor.values().length - 1; i++) {
+        for (int i = 0; i < CardColor.values().length - 1; i++) {
             System.out.print(CardColor.values()[i].toString() + ", ");
         }
         System.out.print("]\nEnter index starting from 0 :");
@@ -108,7 +109,7 @@ class UnoGame extends Game {
 
     @Override
     public void givePlayersCards() {
-        for (int i = 0; i < 7; i++) {
+        for (int i = 0; i < 2; i++) {
             for (Player player : players) {
                 player.addOneCard(cardsPile.pop());
             }
@@ -137,9 +138,9 @@ class UnoGame extends Game {
         printCardInTheMiddleDTO();
 
         Player player = players.get(currentPlayerTurn);
-        System.out.println("\nPlayer turn: Player " + player.getName());
-        System.out.println("Number of players cards= " + player.getCards().size());
 
+        System.out.println("\nPlayer turn: Player " + player.getName());
+        System.out.println("Number of player cards= " + player.getCards().size());
         printListOfCards(player.getCards(), "All player Cards:");
         System.out.println();
 
@@ -153,7 +154,11 @@ class UnoGame extends Game {
         if (allowedCards.size() > 0) {
             printListOfCards(allowedCards, "Cards allowed to play:");
             System.out.print("\nChoose a card by entering its index starting from 0 : ");
+
             int cardIndex = scanner.nextInt();
+            //
+            //MultiThreading
+            //
             while (cardIndex < 0 || cardIndex > allowedCards.size() - 1) {
                 System.out.println("Invalid Input\n Re-Enter your card index");
                 cardIndex = scanner.nextInt();
@@ -162,9 +167,17 @@ class UnoGame extends Game {
             player.removeOneCard(allowedCards.get(cardIndex));
 
             scanner.nextLine();
+
+            if (player.getCards().isEmpty()) {
+                scoreCounter(player);
+                printEachPlayersCardsDTO();
+                printPlayersScores();
+                if (!isEnd) startNewGame();
+            }
+
             System.out.println();
         } else {
-            System.out.println("No Card can be played. drawing a card...");
+            System.out.println("No Cards can be played. drawing a card...");
 
             Card extraCard = drawCardFromPile();
             player.addOneCard(extraCard);
@@ -177,6 +190,7 @@ class UnoGame extends Game {
                 System.out.println("Card can be played, Do you want to play it?");
                 System.out.print("Enter 0 -> false, 1 -> true : ");
                 boolean isPlay = scanner.nextInt() == 1;
+                System.out.println();
                 if (isPlay) {
                     playCard(extraCard);
                     player.removeOneCard(extraCard);
@@ -191,6 +205,36 @@ class UnoGame extends Game {
     public void playCard(Card card) {
         setCardInTheMiddle(card);
         effects(card);
+    }
+
+    @Override
+    public void printPlayersScores() {
+        System.out.println("\nPlayers Scores:");
+        for (Player player: players) {
+            System.out.printf("\nPlayer %s score = ",player.getName());
+            System.out.println(player.getScore());
+        }
+        System.out.println();
+    }
+
+    @Override
+    public void startNewGame() {
+        System.out.println("\n\nStarting a new Uno game...\n");
+
+        currentPlayerTurn = -1;
+        isClockWise = true;
+        removePlayersCards();
+        fillCardsPile();
+        shuffleCards();
+        givePlayersCards();
+        drawTheFirstCard();
+    }
+
+    @Override
+    public void removePlayersCards() {
+        for (Player player : players) {
+            player.removeAllCards();
+        }
     }
 
     @Override
@@ -210,6 +254,22 @@ class UnoGame extends Game {
     }
 
     @Override
+    public void scoreCounter(Player winPlayer) {
+        System.out.printf("\n* * * Congratulation Player %s won! * * *", winPlayer.getName());
+        for (Player player: players) {
+            winPlayer.setScore(winPlayer.getScore() + player.leftCards());
+        }
+        if (winPlayer.getScore() >= 50) {
+            isEnd = true;
+        }
+    }
+
+    @Override
+    public void EndGame() {
+        System.out.printf("\nGame Ended\nPlayer %s won.\n", players.get(currentPlayerTurn).getName());
+    }
+
+    @Override
     public void nextTurn() {
         if (isClockWise) {
             turnClockWise();
@@ -225,23 +285,13 @@ class UnoGame extends Game {
 
     @Override
     public void play() {
-        System.out.println("\nStarting Uno game...");
+        startNewGame();
 
-        fillCardsPile();
-        shuffleCards();
-//        printCardsPileDTO();
-
-        givePlayersCards();
-        printEachPlayersCardsDTO();
-
-        drawTheFirstCard();
-
-//        System.out.println("number of cards: " + cardsPile.size());
-
-        for (int i = 0; i < 20; i++) {
-            playerTurn();
+        while (!isEnd){
             nextTurn();
+            playerTurn();
         }
+        EndGame();
         scanner.close();
     }
 
@@ -309,6 +359,7 @@ class UnoGame extends Game {
         }
         System.out.print("\b\b ]");
     }
+
     public void cardPrintAndMapToDTO(Card card) {
         CardDTO cardDTO = mapToCardDTO(card);
         System.out.print("[");
