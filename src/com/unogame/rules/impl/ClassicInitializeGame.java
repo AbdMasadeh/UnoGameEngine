@@ -1,6 +1,7 @@
 package com.unogame.rules.impl;
 
 import com.unogame.card.*;
+import com.unogame.exception.InvalidInputException;
 import com.unogame.player.Player;
 import com.unogame.player.PlayersRepository;
 import com.unogame.rules.InitializeGame;
@@ -17,8 +18,8 @@ public class ClassicInitializeGame implements InitializeGame {
 
         System.out.print("Enter the number of players: ");
         int numPlayers = scanner.nextInt();
-        if (numPlayers < 2) throw new RuntimeException("Uno is played with at least 2 players");
-        if (numPlayers > 10) throw new RuntimeException("Uno is played with at most 10 players");
+        if (numPlayers < 2) throw new InvalidInputException("Uno is played with at least 2 players");
+        if (numPlayers > 10) throw new InvalidInputException("Uno is played with at most 10 players");
         scanner.nextLine();
 
         List<Player> players = new ArrayList<>();

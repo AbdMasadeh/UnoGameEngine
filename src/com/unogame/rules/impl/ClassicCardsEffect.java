@@ -3,6 +3,7 @@ package com.unogame.rules.impl;
 
 import com.unogame.card.Card;
 import com.unogame.card.CardColor;
+import com.unogame.exception.InvalidInputException;
 import com.unogame.rules.CardsEffects;
 import com.unogame.card.CardsRepository;
 import com.unogame.rules.TurnStrategy;
@@ -69,7 +70,7 @@ public class ClassicCardsEffect implements CardsEffects {
         }
         System.out.print("]\nEnter index starting from 0 :");
         int colorIndex = scanner.nextInt();
-        scanner.nextLine();
+        if(colorIndex < 0 || colorIndex > 3) throw new InvalidInputException("Invalid Input");
         cardsRepository.getCardInMiddle().setColor(CardColor.values()[colorIndex]);
     }
 

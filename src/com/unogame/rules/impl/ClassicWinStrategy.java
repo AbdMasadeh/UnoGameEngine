@@ -39,7 +39,7 @@ public class ClassicWinStrategy implements WinStrategy {
 
     @Override
     public boolean gameWin() {
-        return playersRepository.getPlayer().getScore() < 100;
+        return playersRepository.getPlayer().getScore() < 500;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.unogame.card.Card;
 import com.unogame.card.CardType;
 import com.unogame.card.CardsRepository;
 import com.unogame.card.CardDTO;
+import com.unogame.exception.InvalidInputException;
 import com.unogame.player.Player;
 import com.unogame.player.PlayersRepository;
 import com.unogame.rules.GameController;
@@ -42,7 +43,7 @@ public class ClassicGameController implements GameController {
 
     @Override
     public void dealPlayersCards() {
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 7; i++) {
             for (int index = 0; index < playersRepository.getPlayersListSize(); index++) {
                 playersRepository.setPlayerIndex(index);
                 playersRepository.getPlayer().addOneCard(cardsRepository.popCard());
@@ -79,8 +80,11 @@ public class ClassicGameController implements GameController {
         if (matchingCards(extraCard)) {
             System.out.println("Card can be played, Do you want to play it?");
             System.out.print("Enter 0 -> false, 1 -> true : ");
-            boolean isPlay = scanner.nextInt() == 1;
-            scanner.nextLine();
+            int play = scanner.nextInt();
+            if (play != 0 && play != 1) {
+                throw new InvalidInputException("Invalid input, none of listing choices");
+            }
+            boolean isPlay = play == 1;
             System.out.println();
             if (isPlay) {
                 return playCard(extraCard);
@@ -121,12 +125,10 @@ public class ClassicGameController implements GameController {
         printListOfCards(allowedCards, "Cards allowed to play:");
         System.out.print("\nChoose a card by entering its index starting from 0 : ");
         int cardIndex = scanner.nextInt();
-        scanner.nextLine();
         while (cardIndex < 0 || cardIndex > allowedCards.size() - 1) {
             System.out.println("Invalid Input\n Re-Enter your card index");
             cardIndex = scanner.nextInt();
         }
-        scanner.nextLine();
         return allowedCards.get(cardIndex);
     }
 
